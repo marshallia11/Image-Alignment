@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import util
 
 def harris_corner_detection(img, img_gray):
     # img, block size, kernel size, k
@@ -9,6 +10,7 @@ def harris_corner_detection(img, img_gray):
     dst = cv2.cornerHarris(img_gray, 3,3,0.02)
     dst = cv2.dilate(dst, None)
     img[dst>0.01*dst.max()]=[0,0,255]
+    util.output('/home/kuro/project/Image-Alignment/output/haris/1_2.png', img)
     return img
 
 def shi_tomasi(img, img_gray):
@@ -21,49 +23,46 @@ def shi_tomasi(img, img_gray):
         cv2.circle(img, (x, y), 3, 255, -1)
 
     plt.imshow(img), plt.show()
+    util.output('/home/kuro/project/Image-Alignment/output/shi_tomasi/1_2.png', img)
     return img
 
 def sift(img, img_gray):
-    print('sift')
-
-def surf(img, img_gray):
-    print('surf')
+    sift = cv2.SIFT_create()
+    kp = sift.detect(img_gray, None)
+    kp, des = sift.detectAndCompute(img_gray, None)
+    result = cv2.drawKeypoints(img_gray, kp, None, color=(255, 0, 0))
+    plt.imshow(result)
+    util.output('/home/kuro/project/Image-Alignment/output/sift/1_2.png', result)
+    return kp, des
 
 def fast(img, img_gray):
-    fast = cv2.FastFeatureDetector()
+    fast = cv2.FastFeatureDetector_create(11 ,True, cv2.FAST_FEATURE_DETECTOR_TYPE_5_8 )
+    fast.setNonmaxSuppression(True)
     kp = fast.detect(img_gray, None)
-    img2 = cv2.drawKeypoints(img, kp, color=(255, 0, 0))
+    kp, des = fast.detectAndCompute(img_gray,None)
+    kp_img = cv2.drawKeypoints(img, kp, None, color=(255, 0, 0))
+    util.output('/home/kuro/project/Image-Alignment/output/fast/1_2.png', kp_img)
+    return kp, des
 
-    # Print all default params
-    # print
-    # "Threshold: ", fast.getInt('threshold')
-    # print
-    # "nonmaxSuppression: ", fast.getBool('nonmaxSuppression')
-    # print
-    # "neighborhood: ", fast.getInt('type')
-    # print
-    # "Total Keypoints with nonmaxSuppression: ", len(kp)
-    #
-    # cv2.imwrite('fast_true.png', img2)
-    #
-    # # Disable nonmaxSuppression
-    # fast.setBool('nonmaxSuppression', 0)
-    # kp = fast.detect(img, None)
-    #
-    # print
-    # "Total Keypoints without nonmaxSuppression: ", len(kp)
-    #
-    # img3 = cv2.drawKeypoints(img, kp, color=(255, 0, 0))
-    #
-    plt.imshow(img3)
-    return img2
-
-
+#need adjustment
 def brief(img, img_gray):
-    print('brief')
+    star = cv2.xfeatures2d.StarDetector_create()
+
+    # Initiate BRIEF extractor
+    brief = cv2.xfeatures2d.BriefDescriptorExtractor_create()
+
+    # find the keypoints with STAR
+    kp = star.detect(img_gray, None)
+
+    # compute the descriptors with BRIEF
+    kp, des = brief.compute(img_gray, kp)
+    return kp, des
 
 def orb(img, img_gray):
-    print('orb')
+    orb = cv2.ORB_create(nfeatures=150)
+    kp = orb.detect(img_gray, None)
+    kp, des = orb.compute(img_gray, kp)
+    kp_img = cv2.drawKeypoints(img, kp, None, color=(255, 0, 0))
+    util.output('/home/kuro/project/Image-Alignment/output/orb/1_2.png', kp_img)
 
-def ransac(img, img_gray):
-    print('ransac')
+    return kp, des
