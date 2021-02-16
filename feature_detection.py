@@ -15,63 +15,59 @@ def harris_corner_detection(dataset,grayscaled):
         dst = cv2.dilate(dst, None)
         img = dataset[i]
         img[dst>0.01*dst.max()]=[0,0,255]
-        i=i+1
-        plt.show()
-        util.output('/home/kuro/project/Image-Alignment/output/haris/'+str(i)+'.png', img)
+        print(len(dst))
+        results.append(dst)
+        i = i + 1
+        # util.output('/home/kuro/project/Image-Alignment/output/haris/'+str(i)+'.png', img)
     return results
 
 #how to make it supported
 def shi_tomasi(dataset,grayscaled):
     # number of point 100, quality 0.4, min euclidean 10
-    i =0
     results=[]
-    # for img_gray in grayscaled:
-    print(i)
-    corners = cv2.goodFeaturesToTrack(grayscaled, 100, 0.3, 15, 3)
-    # corners = np.int0(corners)
-    img = dataset[i]
-    i=i+1
-    for i in corners:
-        x, y = i.ravel()
-        cv2.circle(img, (x, y), 3, 255, -1)
-    results.append(corners)
-    plt.imshow(img)
-    plt.show()
+    i = 0
+    for img_gray in grayscaled:
+        corners = cv2.goodFeaturesToTrack(img_gray,
+                                          maxCorners=100,
+                                          qualityLevel=0.3,
+                                          minDistance=15,
+                                          blockSize=3)
+        # for i in corners:
+        #     x, y = i.ravel()
+        #     cv2.circle(dataset[0], (x, y), 3, 255, -1)
+        print(len(corners))
+        i=i+1
+        results.append(corners)
+    return results
 
-    # util.output('/home/kuro/project/Image-Alignment/output/shitomsi/' + str(i) + '.png', img)
-    # return results
-    return corners
 def sift(img, img_gray):
     sift = cv2.SIFT_create()
-    kp = sift.detect(img_gray, None)
     kp, des = sift.detectAndCompute(img_gray, None)
     result = cv2.drawKeypoints(img_gray, kp, None, color=(255, 0, 0))
-    plt.imshow(result)
-    util.output('/home/kuro/project/Image-Alignment/output/sift/1_2.png', result)
+    print(len(kp))
+    # util.output('/home/kuro/project/Image-Alignment/output/sift/1_2.png', result)
     return kp, des
 
 #how to make it supported
 def fast(img, img_gray):
-    fast = cv2.FastFeatureDetector_create(11 ,True, cv2.FAST_FEATURE_DETECTOR_TYPE_5_8 )
+    fast = cv2.FastFeatureDetector_create()
     fast.setNonmaxSuppression(True)
     kp = fast.detect(img_gray, None)
-    kp, des = fast.detectAndCompute(img_gray,None)
     kp_img = cv2.drawKeypoints(img, kp, None, color=(255, 0, 0))
-    util.output('/home/kuro/project/Image-Alignment/output/fast/1_2.png', kp_img)
-    return kp, des
+    print(len(kp))
+    # util.output('/home/kuro/project/Image-Alignment/output/fast/1_2.png', kp_img)
+    return kp
 
 #how to make it supported
 def brief(img, img_gray):
     star = cv2.xfeatures2d.StarDetector_create()
-
-    # Initiate BRIEF extractor
     brief = cv2.xfeatures2d.BriefDescriptorExtractor_create()
 
     # find the keypoints with STAR
     kp = star.detect(img_gray, None)
-
-    # compute the descriptors with BRIEF
     kp, des = brief.compute(img_gray, kp)
+    result = cv2.drawKeypoints(img, kp, None, color=(255, 0, 0))
+    print(len(kp))
     return kp, des
 
 def orb(dataset):
@@ -85,16 +81,22 @@ def orb(dataset):
         kp_img = cv2.drawKeypoints(img, kp, None, color=(255, 0, 0))
         kps.append(kp)
         desc.append(des)
-        util.output('/home/kuro/project/Image-Alignment/output/orb/'+str(i)+'.png', kp_img)
+        print(len(kp))
+        # util.output('/home/kuro/project/Image-Alignment/output/orb/'+str(i)+'.png', kp_img)
         i=i+1
     return kps,desc
 
 def akaze(img, img_gray):
     orb = cv2.AKAZE_create()
-    kp = orb.detect(img_gray, None)
     kp, des = orb.detectAndCompute(img_gray, None)
     kp_img = cv2.drawKeypoints(img, kp, None, color=(255, 0, 0))
+    print(len(kp))
+    fig = plt.figure()
+    fig.suptitle('Akaze')
+    plt.axis('off')
+    plt.imshow(kp_img)
+    plt.show()
 
-    util.output('/home/kuro/project/Image-Alignment/output/orb/1_2.png', kp_img)
+    # util.output('/home/kuro/project/Image-Alignment/output/orb/1_2.png', kp_img)
 
     return kp, des

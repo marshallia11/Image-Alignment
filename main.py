@@ -2,19 +2,29 @@ import util
 import feature_detection as fd
 import feature_matching as fm
 import numpy as np
-import matplotlib.pyplot as plt
-from skimage.filters import try_all_threshold
 
-import os, sys
 if __name__ == '__main__':
-    original ='/home/kuro/project/Image-Alignment/input/'
-    ori_filename = '1_2.png'
-    wrap ='/home/kuro/project/Image-Alignment/input/'
-    wrap_filename= '1_11.png'
     dataset = np.load('/home/kuro/project/Image-Alignment/input/dataset.npy',allow_pickle=True)
-    grayscale_dataset = util.preprocessing(dataset)
+
+    #########Preproces the image you can choose either only grayscale usng input_cv #########
+    #########or use complex preprocessing such as contour using preprocessing method#########
+    grayscale_dataset = util.preprocessing(dataset[0:4])
     # grayscale_dataset = util.input_cv(dataset)
-    (kp, desc) = fd.shi_tomasi(dataset, grayscale_dataset)
-    fm.knn(grayscale_dataset, kp, desc)
-    # fm.brute_force(grayscale_dataset, kp, desc)
+
+    #########Select the feature detection you want to use#########
+    # (kp, desc) = fd.orb(grayscale_dataset)
+    # kp = fd.harris_corner_detection(dataset[0:4],grayscale_dataset)
+    kp = fd.shi_tomasi(dataset[0:4],grayscale_dataset)
+    # kp = fd.sift(dataset[0],grayscale_dataset[0])
+    # kp = fd.fast(dataset[0],grayscale_dataset[0])
+    # kp = fd.brief(dataset[0],grayscale_dataset[0])
+    # kp = fd.akaze(dataset[0],grayscale_dataset[0])
+
+    #########Select the feature matching you want to use#########
+    results = fm.affineAlign(dataset[0:4],grayscale_dataset, kp)
+    # fm.brute_force(dataset[0:4],grayscale_dataset[0:4], kp[0:4], desc[0:4])
+    # fm.knn(dataset[0:4],grayscale_dataset, kp, desc)
+
+    #########Select the matrics you want to use#########
+    # fm.calculateSimilarity(grayscale_dataset[0:4], results[0:4])
 
