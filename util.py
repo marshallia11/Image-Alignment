@@ -85,7 +85,6 @@ def preprocessing(dataset):
     for img in dataset:
         # cv2.imshow('image', img_gray)
         img_gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-
         blured = cv2.GaussianBlur(img_gray, (3, 3), 0)
         # cv2.imshow('blured', img_gray)
         (threshi, img_bw) = cv2.threshold(blured, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
