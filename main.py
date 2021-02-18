@@ -12,20 +12,20 @@ if __name__ == '__main__':
     # grayscale_dataset = util.input_cv(dataset)
 
     #########Select the feature detection you want to use#########
-    (kp, desc) = fd.orb(grayscale_dataset)
+    # (kp, desc) = fd.orb(grayscale_dataset)
     # kp = fd.harris_corner_detection(dataset[0:4],grayscale_dataset)
-    # kp = fd.shi_tomasi(dataset[0:4],grayscale_dataset)
+    kp = fd.shi_tomasi(dataset[0:4],grayscale_dataset)
     # kp = fd.sift(dataset[0],grayscale_dataset[0])
     # kp = fd.fast(dataset[0],grayscale_dataset[0])
     # kp = fd.brief(dataset[0],grayscale_dataset[0])
     # kp = fd.akaze(dataset[0],grayscale_dataset[0])
 
     #########Select the feature matching you want to use#########
-    # results = fm.affineAlign(dataset[0:4],grayscale_dataset, kp)
-    results = fm.brute_force(dataset[0:4],grayscale_dataset[0:4], kp[0:4], desc[0:4])
+    results = fm.lucasKanade(dataset[0:4],grayscale_dataset, kp)
+    # results = fm.brute_force(dataset[0:4],grayscale_dataset[0:4], kp[0:4], desc[0:4])
     # results = fm.knn(dataset[0:4],grayscale_dataset, kp, desc)
     #
     #########Select the matrics you want to use#########
-    fm.calculateRMSE(dataset[0:4],grayscale_dataset, results)
+    # fm.calculateRMSE(dataset[0:4],grayscale_dataset, results)
     # fm.calculateDiff(dataset[0:4],grayscale_dataset[0:4], results[0:4])
 
