@@ -1,6 +1,9 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
+#Note for harris corner.
+# this algorithm cannot return the key point but return the image with the point
 def harris_corner_detection(dataset,grayscaled):
     results=[]
     i =0
@@ -8,6 +11,7 @@ def harris_corner_detection(dataset,grayscaled):
         img_gray = np.float32(img_gray)
 
         dst = cv2.cornerHarris(img_gray, blockSize=3, ksize= 3, k=0.02)
+        print(dst.shape)
         dst = cv2.dilate(dst, None)
         img = dataset[i]
         img[dst>0.01*dst.max()]=[0,0,255]
@@ -24,20 +28,13 @@ def shi_tomasi(dataset,grayscaled):
                                           qualityLevel=0.3,
                                           minDistance=15,
                                           blockSize=3)
+        # print(type(corners[0]))
         # for i in corners:
         #     x, y = i.ravel()
         #     cv2.circle(dataset[0], (x, y), 3, 255, -1)
         i=i+1
         results.append(corners)
     return results
-
-# this method is only for one image not whole dataset
-def sift(img, img_gray):
-    sift = cv2.SIFT_create()
-    kp, des = sift.detectAndCompute(img_gray, None)
-    # result = cv2.drawKeypoints(img_gray, kp, None, color=(255, 0, 0))
-    # util.output('/home/kuro/project/Image-Alignment/output/sift/1_2.png', result)
-    return kp, des
 
 # this method is only for one image not whole dataset
 def fast(img, img_gray):
@@ -48,15 +45,30 @@ def fast(img, img_gray):
     # util.output('/home/kuro/project/Image-Alignment/output/fast/1_2.png', kp_img)
     return kp
 
-# this method is only for one image not whole dataset
-def brief(img, img_gray):
+def sift(original, dataset):
+    kps = []
+    desc = []
+    sift = cv2.SIFT_create()
+    for count, value in enumerate(dataset):
+        kp, des = sift.detectAndCompute(value, None)
+        kps.append(kp)
+        desc.append(des)
+        # result = cv2.drawKeypoints(value, kp, None, color=(255, 0, 0))
+        # util.output('/home/kuro/project/Image-Alignment/output/sift/1_2.png', result)
+    return kps, desc
+
+def brief(original, dataset):
     star = cv2.xfeatures2d.StarDetector_create()
     brief = cv2.xfeatures2d.BriefDescriptorExtractor_create()
-
-    kp = star.detect(img_gray, None)
-    kp, des = brief.compute(img_gray, kp)
-    # result = cv2.drawKeypoints(img, kp, None, color=(255, 0, 0))
-    return kp, des
+    kps = []
+    desc = []
+    for count, value in enumerate(dataset):
+        kp = star.detect(value, None)
+        kp, des = brief.compute(value, kp)
+        kps.append(kp)
+        desc.append(des)
+        #  result = cv2.drawKeypoints(original[count], kp, None, color=(255, 0, 0))
+    return kps, desc
 
 def orb(dataset):
     i =0
@@ -75,7 +87,12 @@ def orb(dataset):
 
 def akaze(img, img_gray):
     orb = cv2.AKAZE_create()
-    kp, des = orb.detectAndCompute(img_gray, None)
+    kps=[]
+    desc=[]
+    for count, value in enumerate(img_gray):
+        kp, des = orb.detectAndCompute(value, None)
+        kps.append(kp)
+        desc.append(des)
     # kp_img = cv2.drawKeypoints(img, kp, None, color=(255, 0, 0))
     # fig = plt.figure()
     # fig.suptitle('Akaze')
@@ -85,4 +102,4 @@ def akaze(img, img_gray):
 
     # util.output('/home/kuro/project/Image-Alignment/output/orb/1_2.png', kp_img)
 
-    return kp, des
+    return kps, desc

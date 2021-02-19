@@ -50,7 +50,7 @@ def knn(original,dataset, kp, desc):
         img_wrap = dataset[i]
         ori = original[i]
         kp_wrap = kp[i]
-        print(kp_wrap)
+        # print(kp_wrap)
         des_wrap = desc[i]
         matcher = cv2.BFMatcher()
         matches = matcher.knnMatch(des_ori, des_wrap, k=2)
@@ -65,10 +65,10 @@ def knn(original,dataset, kp, desc):
 
         ref_matched_kpts = np.float32([kp_ori[m[0].queryIdx].pt for m in good_matches])
         sensed_matched_kpts = np.float32([kp_wrap[m[0].trainIdx].pt for m in good_matches])
-        H, status = cv2.findHomography(sensed_matched_kpts, ref_matched_kpts, cv2.RANSAC, 5.0)
+        # H, status = cv2.findHomography(sensed_matched_kpts, ref_matched_kpts, cv2.RANSAC, 5.0)
 
         # Transform image using prespective transformation
-        warped_image = cv2.warpPerspective(ori, H, (img_wrap.shape[1], img_wrap.shape[0]))
+        # warped_image = cv2.warpPerspective(ori, H, (img_wrap.shape[1], img_wrap.shape[0]))
 
         # Transform image using affine transformation
         M = cv2.estimateAffinePartial2D(sensed_matched_kpts, ref_matched_kpts, method=cv2.RANSAC, maxIters=1000,confidence=0.95)
@@ -98,12 +98,12 @@ def lucasKanade(dataset,grayscale, kp):
             curr_kp =curr_kp[:len(cnr1)]
         if (len(curr_kp) < len(cnr1)):
             cnr1 =cnr1[:len(curr_kp)]
-        curr_pt, status, err = cv2.calcOpticalFlowPyrLK(img,template, curr_kp, template_kp)
+        curr_pts, status, err = cv2.calcOpticalFlowPyrLK(img,template, curr_kp, None)
 
-        assert curr_kp.shape == curr_pt.shape
+        assert curr_kp.shape == curr_pts.shape
         idx = np.where(status == 1)[0]
         prev_pts = curr_kp[idx]
-        curr_pts = curr_pt[idx]
+        curr_pts = curr_pts[idx]
 
         M = cv2.estimateAffinePartial2D(prev_pts, curr_pts, method=cv2.RANSAC, maxIters=1000,confidence=0.95)
         image = cv2.warpAffine(src=rgb_img,M=M[0],dsize=(img.shape[1], img.shape[0]))
@@ -155,17 +155,17 @@ def calculateRMSE(original, dataset, result):
         after.append(math.sqrt(scoreAfter))
         before.append(math.sqrt(scoreBefore))
 
-        cv2.imwrite('/home/kuro/project/Image-Alignment/output/affine_before_'+str(i)+'.png',blendBefore)
-        cv2.imwrite('/home/kuro/project/Image-Alignment/output/affine_after_'+str(i)+'.png',blendAfter)
+        # cv2.imwrite('/home/kuro/project/Image-Alignment/output/affine_before_'+str(i)+'.png',blendBefore)
+        # cv2.imwrite('/home/kuro/project/Image-Alignment/output/affine_after_'+str(i)+'.png',blendAfter)
 
         i=i+1
 
-    df = pd.DataFrame({'dataset': np.arange(0, 4, 1),
+    df = pd.DataFrame({'dataset': np.arange(0, 50, 1),
                        'before': before,
                        'after': after})
     cv2.waitKey(0)
 
-    df.to_csv('/home/kuro/project/Image-Alignment/output/result.csv', index=False)
+    df.to_csv('/home/kuro/project/Image-Alignment/output/result_sift.csv', index=False)
 
 #Absolute Different metrics
 def calculateDiff(original, dataset, result):
