@@ -1,10 +1,11 @@
 import cv2
 import numpy as np
-import os
+import os,io
 import copy
 from skimage.color import rgb2gray
+import matplotlib.pyplot as plt
 
-x_train = []
+
 
 def input_cv(dataset):
     images =[]
@@ -66,12 +67,43 @@ def preprocessing(dataset):
         images.append(drawing)
     return images
 
+def unetPrepro(dirs_img,path_img,path_mask):
+    img_dataset = []
+    mask_dataset = []
+    for item in dirs_img:
+        name, extension = os.path.splitext(item)
+        if os.path.isfile(path_img+item) and  extension == '.png':
+            img = cv2.imread(path_img+item,3)
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            mask = np.load(path_mask+name+'.npy')
+            print(img.shape)
+            # print(mask.shape)
+            if img.shape[0] ==852:
+                img = img[2:850,:]
+                mask = mask[2:850,:]
+                mask=np.hstack((mask, np.zeros((mask.shape[0], 1), dtype=mask.dtype)))
+                img=cv2.copyMakeBorder(img.copy(), 0, 0, 0, 1, cv2.BORDER_CONSTANT, value=0)
+            if img.shape[0] ==843:
+                img = img[:,1:-1]
+                mask = mask[:,1:-1]
+                img=cv2.copyMakeBorder(img.copy(), 2, 3, 0, 0, cv2.BORDER_CONSTANT, value=0)
+                mask=np.vstack((np.zeros((2,mask.shape[1]), dtype=mask.dtype),mask))
+                mask=np.vstack((mask, np.zeros((3,mask.shape[1]), dtype=mask.dtype)))
+            mask_dataset.append(mask)
+            img_dataset.append(img)
+    return img_dataset, mask_dataset
+
 #If you want to create your own dataset uncomment and run this file
-# if __name__ == '__main__':
-#     dirs = os.listdir('/home/kuro/project/Transistor dataset/defect-free/0122/')
-#     path = '/home/kuro/project/Transistor dataset/defect-free/0122/'
-#     save_npy(path, dirs)
-#     dataset = np.array(x_train)
-#     np.save('/home/kuro/project/Image-Alignment/input/dataset.npy', dataset)
-#     dataset = np.load('/home/kuro/project/Image-Alignment/input/dataset.npy',allow_pickle=True)
-#     roi(dataset)
+if __name__ == '__main__':
+    x_train = []
+    dirs_img = os.listdir('/home/kuro/Downloads/3225_defect-free_20210218/data_annotated')
+    path_img = '/home/kuro/Downloads/3225_defect-free_20210218/data_annotated/'
+    path_mask = '/home/kuro/Downloads/3225_defect-free_20210218/data_dataset_voc/SegmentationClass/'
+    (images, masks) = unetPrepro(dirs_img,path_img,path_mask)
+
+    # dataset = np.array(x_train)
+    a =  np.array(images)
+    b =  np.array(masks)
+    np.save('/home/kuro/project/Image-Alignment/input/images.npy', a)
+    np.save('/home/kuro/project/Image-Alignment/input/masks.npy', b)
+    # dataset = np.load('/home/kuro/project/Image-Alignment/input/dataset.npy',allow_pickle=True)
