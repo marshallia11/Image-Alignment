@@ -4,7 +4,6 @@ import os,io
 import copy
 from skimage.color import rgb2gray
 
-# TODO: clean the code so it is re-usable
 def input_cv(dataset):
     images =[]
     for img in dataset:
@@ -31,11 +30,13 @@ def output(out_filepath, img):
     cv2.imwrite(out_filepath,img)
 
 def save_npy(path, dirs):
+    dataset=[]
     for item in dirs:
         if os.path.isfile(path+item):
             img = cv2.imread(path+item,3)
             img = cv2.resize(img, (1055, 843))
-            x_train.append(img)
+            dataset.append(img)
+    return dataset
 
 def preprocessing(dataset):
     images=[]
@@ -100,24 +101,24 @@ def unetPrepro(dirs_img,path_img,path_mask):
         else:
             print(name)
         i=i+1
-    return img_dataset, mask_dataset
+        masks = np.vstack(mask_dataset)
+        masks = masks.reshape((15, 848, 1056, 1))
+        images = np.true_divide(img_dataset, 255.0)
+    return images, masks
 
 #If you want to create your own dataset uncomment and run this file
 if __name__ == '__main__':
-    x_train = []
+    dirsDataset = os.listdir('/home/kuro/project/Transistor dataset/defect-free/0122')
+    pathDataset = os.listdir('/home/kuro/project/Transistor dataset/defect-free/0122/')
     dirs_img = os.listdir('/home/kuro/Downloads/3225_defect-free_20210218/data_annotated')
     path_img = '/home/kuro/Downloads/3225_defect-free_20210218/data_annotated/'
-    # path_mask = '/home/kuro/Downloads/3225_defect-free_20210218/data_dataset_voc/SegmentationClassPNG/'
     path_mask = '/home/kuro/Downloads/3225_defect-free_20210218/data_dataset_voc/SegmentationClass/'
-    (images, masks) = unetPrepro(dirs_img,path_img,path_mask)
-    test =  np.vstack(masks)
-    mask_dataset = test.reshape((15,848,1056,1))
-    images =  np.true_divide(images, 255.0)
 
-    # dataset = np.array(x_train)
-    a =  np.array(images)
-    # cv2.imshow('img', images[14])
-    # cv2.imshow('mask', masks[14])
-    np.save('/home/kuro/project/Image-Alignment/input/imagesDirty3.npy', a)
-    np.save('/home/kuro/project/Image-Alignment/input/masksDirty3.npy', mask_dataset)
-    # dataset = np.load('/home/kuro/project/Image-Alignment/input/dataset.npy',allow_pickle=True)
+    dataset = save_npy(pathDataset, dirsDataset)
+    (images, masks) = unetPrepro(dirs_img,path_img,path_mask)
+    grayscale = preprocessing(dataset)
+
+    np.save('/home/kuro/project/Image-Alignment/input/imagesDirty3.npy', np.array(images))
+    np.save('/home/kuro/project/Image-Alignment/input/masksDirty3.npy', masks)
+    np.save('/home/kuro/project/Image-Alignment/input/dataset.npy', dataset)
+    np.save('/home/kuro/project/Image-Alignment/input/grayscaled.npy', grayscale)
