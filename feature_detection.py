@@ -37,13 +37,17 @@ def shi_tomasi(dataset,grayscaled):
     return results
 
 # this method is only for one image not whole dataset
-def fast(img, img_gray):
-    fast = cv2.FastFeatureDetector_create()
-    fast.setNonmaxSuppression(True)
-    kp = fast.detect(img_gray, None)
-    kp_img = cv2.drawKeypoints(img, kp, None, color=(255, 0, 0))
+def fast(original, dataset):
+    kps = []
+    desc = []
+    for count, value in enumerate(dataset):
+        fast = cv2.FastFeatureDetector_create()
+        fast.setNonmaxSuppression(True)
+        kp = fast.detect(value, None)
+        kp_img = cv2.drawKeypoints(original[count], kp, None, color=(255, 0, 0))
+        kps.append(kp)
     # util.output('/home/kuro/project/Image-Alignment/output/fast/1_2.png', kp_img)
-    return kp
+    return kps
 
 def sift(original, dataset):
     kps = []

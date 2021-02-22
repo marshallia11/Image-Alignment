@@ -34,7 +34,8 @@ def brute_force(original, dataset, kp, desc):
 
         M = cv2.estimateAffinePartial2D(ptsA, ptsB, method=cv2.RANSAC, maxIters=1000,confidence=0.95)
         image = cv2.warpAffine(src=img_wrap,M=M[0],dsize=(img_wrap.shape[1], img_wrap.shape[0]))
-        # util.output('/home/kuro/project/Image-Alignment/output/feature_matching/brute_after'+str(i)+'.png', aligned)
+        oriWrap = cv2.warpAffine(src=ori,M=M[0],dsize=(img_wrap.shape[1], img_wrap.shape[0]))
+        util.output('/home/kuro/project/Image-Alignment/output/feature_matching//brute_after'+str(i)+'.png', ori)
         # util.output('/home/kuro/project/Image-Alignment/output/feature_matching/brute_before'+str(i)+'.png', image)
         i=i+1
         results.append(image)
@@ -73,13 +74,15 @@ def knn(original,dataset, kp, desc):
         # Transform image using affine transformation
         M = cv2.estimateAffinePartial2D(sensed_matched_kpts, ref_matched_kpts, method=cv2.RANSAC, maxIters=1000,confidence=0.95)
         image = cv2.warpAffine(src=img_wrap,M=M[0],dsize=(img_wrap.shape[1], img_wrap.shape[0]))
+        ori_wrap = cv2.warpAffine(src=ori,M=M[0],dsize=(img_wrap.shape[1], img_wrap.shape[0]))
 
         #Display the transformed image
         # plt.imshow(img3)
         # plt.show()
 
         #save the image
-        # util.output('/home/kuro/project/Image-Alignment/output/feature_matching/knn_after'+str(i)+'.png', warped_image)
+
+        util.output('/home/kuro/project/Image-Alignment/output/feature_matching/knn_after'+str(i)+'.png', ori_wrap)
         # util.output('/home/kuro/project/Image-Alignment/output/feature_matching/knn_before_'+str(i)+'.png', image)
         i=i+1
         results.append(image)
@@ -111,21 +114,23 @@ def lucasKanade(dataset,grayscale, kp):
         results.append(result)
 
         #Visualize the movement in template and current image
-        # helper = cv2.hconcat([img,img])
-        # helper = cv2.merge((helper,helper,helper))
-        # for x, (new, old) in enumerate(zip(curr_pts, prev_pts)):
-        #     a, b = new.ravel()
-        #     print(a,b)
-        #     c, d = old.ravel()
-        #     print(c,d)
-        #     cv2.circle(helper, (c, d), 3, 255, -2)
-        #     cv2.circle(helper, (int(1055+a), b), 3, 255, -2)
-        #     cv2.line(helper,(int(1055+a), b),(c,d),(255,0,0),2)
-
+        helper = cv2.hconcat([img,template])
+        helper = cv2.merge((helper,helper,helper))
+        for x, (new, old) in enumerate(zip(curr_pts, prev_pts)):
+            a, b = new.ravel()
+            # print(a,b)
+            c, d = old.ravel()
+            # print(c,d)
+            cv2.circle(helper, (c, d), 3, 255, -2)
+            cv2.circle(helper, (int(1055+a), b), 3, 255, -2)
+            cv2.line(helper,(int(1055+a), b),(c,d),(255,0,0),2)
+        # cv2.imshow(i,helper)
         # util.output('/home/kuro/project/Image-Alignment/output/feature_matching/lucas_matching_'+str(i)+'.png', helper)
-        # util.output('/home/kuro/project/Image-Alignment/output/feature_matching/affine_after'+str(i)+'.png', image)
+        util.output('/home/kuro/project/Image-Alignment/output/feature_matching/affine_after'+str(i)+'.png', image)
         # util.output('/home/kuro/project/Image-Alignment/output/affine/affine_before'+str(i)+'_1.png', image)
         i=i+1
+
+        # cv2.waitKey(0)
     return results
 
 #RMSE metrics
@@ -155,17 +160,17 @@ def calculateRMSE(original, dataset, result):
         after.append(math.sqrt(scoreAfter))
         before.append(math.sqrt(scoreBefore))
 
-        # cv2.imwrite('/home/kuro/project/Image-Alignment/output/affine_before_'+str(i)+'.png',blendBefore)
-        # cv2.imwrite('/home/kuro/project/Image-Alignment/output/affine_after_'+str(i)+'.png',blendAfter)
+        cv2.imwrite('/home/kuro/project/Image-Alignment/output/lucas_before_'+str(i)+'.png',blendBefore)
+        cv2.imwrite('/home/kuro/project/Image-Alignment/output/lucas_after_'+str(i)+'.png',blendAfter)
 
         i=i+1
 
-    df = pd.DataFrame({'dataset': np.arange(0, 50, 1),
-                       'before': before,
-                       'after': after})
+    # df = pd.DataFrame({'dataset': np.arange(0, 100, 1),
+    #                    'before': before,
+    #                    'after': after})
     cv2.waitKey(0)
 
-    df.to_csv('/home/kuro/project/Image-Alignment/output/result_sift.csv', index=False)
+    # df.to_csv('/home/kuro/project/Image-Alignment/output/result_akaze.csv', index=False)
 
 #Absolute Different metrics
 def calculateDiff(original, dataset, result):

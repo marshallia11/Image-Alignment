@@ -4,9 +4,13 @@ from tensorflow.keras.layers import Conv2D, BatchNormalization, Activation, MaxP
 from tensorflow import keras
 import matplotlib.pyplot as plt
 import tensorflow as tf
-import PIL
+import pandas as pd
 import cv2
+import json
+from tensorflow.python.keras import Model
+from tensorflow.python.keras.layers import concatenate
 from tensorflow.keras.optimizers import Adam
+import util
 # def get_model(img_size,num_classes):
 #     inputs = layers.Input([843, 1055, 1])
 #
@@ -60,8 +64,6 @@ from tensorflow.keras.optimizers import Adam
 #     # Define the model
 #     model = keras.Model(inputs, outputs)
 #     return model
-from tensorflow.python.keras import Model
-from tensorflow.python.keras.layers import concatenate
 
 
 def conv2d_block(input_tensor, n_filters, kernel_size=3, batchnorm=True):
@@ -140,9 +142,9 @@ def unet(pretrained_weights = None,input_size = (842,1054,1)):
     model.summary()
 
 
-def get_unet(input_img, start_neurons=16, dropout=0.1, batchnorm=True):
+def get_unet(input_img, start_neurons=64, dropout=0.1, batchnorm=True):
     # Contracting Path
-    inputs = keras.Input(shape=input_img)
+    inputs = keras.Input(shape=[848, 1056, 3])
     conv1 = Conv2D(start_neurons * 1, (3, 3), activation="relu", padding="same")(inputs)
     conv1 = Conv2D(start_neurons * 1, (3, 3), activation="relu", padding="same")(conv1)
     pool1 = MaxPooling2D((2, 2))(conv1)
@@ -201,42 +203,75 @@ def get_unet(input_img, start_neurons=16, dropout=0.1, batchnorm=True):
     uconv1 = Conv2D(start_neurons * 1, (3, 3), activation="relu", padding="same")(uconv1)
     uconv1 = Conv2D(start_neurons * 1, (3, 3), activation="relu", padding="same")(uconv1)
 
-    output_layer = Conv2D(1, (1, 1), padding="same", activation="sigmoid")(uconv1)
+    output_layer = Conv2D(4, (1, 1), padding="same", activation="sigmoid")(uconv1)
 
     model = Model(inputs, output_layer)
     return model
-def display_mask(i,val_preds):
-    """Quick utility to display a model's prediction."""
-    mask = np.argmax(val_preds[i], axis=-1)
-    mask = np.expand_dims(mask, axis=-1)
-    img = PIL.ImageOps.autocontrast(keras.preprocessing.image.array_to_img(mask))
-    plt.imshow(img)
-    plt.show()
 
 if __name__ == '__main__':
     keras.backend.clear_session()
-    x = np.load('/home/kuro/project/Image-Alignment/input/images.npy')
-    y = np.load('/home/kuro/project/Image-Alignment/input/masks.npy')
-    x_train = x[:12]
-    y_train = y[:12]
-    x_test = x[12:]
-    y_test = y[12:]
-    # x = np.asarray(x).astype('float32')
-    model = get_unet((848,1056,1))
-    model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=['accuracy'])
+    x = np.load('/home/kuro/project/Image-Alignment/input/imagesClean3.npy',allow_pickle=True)
+    y = np.load('/home/kuro/project/Image-Alignment/input/masksClean3.npy',allow_pickle=True)
+    # x_train = x[:10]
+    # y_train = y[:10]
+    # x_val = x[10:13]
+    # y_val = y[10:13]
+    # x_test = x[13:]
+    # y_test = y[13:]
+    x_train = x[:7]
+    y_train = y[:7]
+    x_val = x[7:10]
+    y_val = y[7:10]
+    x_test = x[10:]
+    y_test = y[10:]
+
+    # cv2.imshow('img', y[14])
+    # cv2.imshow('mask', x[14])
+    # cv2.waitKey(0)
+
+    model = get_unet((848,1056,3))
+    model.compile(optimizer=Adam(learning_rate=.0001), loss="sparse_categorical_crossentropy", metrics=['accuracy'],)
     # model.build((842,1054,1))
     model.summary()
-    callbacks = [
-        keras.callbacks.ModelCheckpoint("oxford_segmentation.h5", save_best_only=True)
-    ]
-    # epochs = 15
-    # print(y_train[0].shape)
-    # print(x_train[0].shape)
-    # model.build()
-    history =model.fit(x=x[:12], y = y[:12], epochs=12 ,batch_size=1)
-    a=np.asarray(y[14]).astype('float32')
-
-    # val_predics = model.predict(x[14])
-    # plt.imshow('ori', x[14])
-    plt.imshow('mask', a)
+    earlyStopping=tf.keras.callbacks.EarlyStopping(monitor='val_accuracy',patience=5)
+    plt.imshow(y_train[0])
     plt.show()
+    history =model.fit(x= x_train,y= y_train, epochs=20, validation_data=(x_val, y_val), batch_size=1, callbacks=[earlyStopping])
+    val_predics=model.predict(x_test)
+    df = pd.DataFrame({'accuracy': history.history['accuracy'],
+                       'val_accuracy': history.history['val_accuracy'],
+                       'loss': history.history['loss'],
+                       'val_loss':history.history['val_loss']})
+    cv2.waitKey(0)
+
+    df.to_csv('/home/kuro/project/Image-Alignment/output/unetc3.csv', index=False)
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'], loc='upper left')
+    plt.show()
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.ylabel('Loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'validation'], loc='upper left')
+    # f, axarr = plt.subplots(2, 4)
+    # axarr[0, 0].imshow(y_test[0])
+    # axarr[0, 1].imshow(x_test[0]*255)
+    # # axarr[0, 2].imshow(cv2.cvtColor(cv2.COLOR_RGBA2RGB,val_predics[0]))
+    # axarr[0, 3].imshow(val_predics[0]*255)
+    # axarr[1, 0].imshow(y_test[1])
+    # axarr[1, 1].imshow(x_test[1]*255)
+    # axarr[1, 2].imshow(cv2.cvtColor(cv2.COLOR_RGBA2RGB,val_predics[1]))
+    # axarr[1, 3].imshow(val_predics[1]*255)
+    # plt.show()
+    util.output('/home/kuro/project/Image-Alignment/output/c3mask.png',y_test[0])
+    util.output('/home/kuro/project/Image-Alignment/output/c3mask1.png',y_test[1])
+    util.output('/home/kuro/project/Image-Alignment/output/c3predicted.png',val_predics[0]*64)
+    util.output('/home/kuro/project/Image-Alignment/output/c3predicted1.png',val_predics[1]*64)
+    util.output('/home/kuro/project/Image-Alignment/output/c3predicted3.png',val_predics[0])
+    util.output('/home/kuro/project/Image-Alignment/output/c3predicted4.png',val_predics[1])
+    util.output('/home/kuro/project/Image-Alignment/output/c3ori.png',x_test[0]*255)
+    util.output('/home/kuro/project/Image-Alignment/output/c3ori1.png',x_test[1]*255)
+

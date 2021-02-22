@@ -4,7 +4,7 @@ import os,io
 import copy
 from skimage.color import rgb2gray
 import matplotlib.pyplot as plt
-
+import tensorflow as tf
 
 
 def input_cv(dataset):
@@ -70,14 +70,18 @@ def preprocessing(dataset):
 def unetPrepro(dirs_img,path_img,path_mask):
     img_dataset = []
     mask_dataset = []
+    i=0
     for item in dirs_img:
         name, extension = os.path.splitext(item)
         if os.path.isfile(path_img+item) and  extension == '.png':
             img = cv2.imread(path_img+item,3)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             mask = np.load(path_mask+name+'.npy')
-            print(img.shape)
-            # print(mask.shape)
+            # mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+            # cv2.imshow('mask '+item, mask)
+            # cv2.imshow('img '+item, img)
+            # print(mask)
+
             if img.shape[0] ==852:
                 img = img[2:850,:]
                 mask = mask[2:850,:]
@@ -89,8 +93,15 @@ def unetPrepro(dirs_img,path_img,path_mask):
                 img=cv2.copyMakeBorder(img.copy(), 2, 3, 0, 0, cv2.BORDER_CONSTANT, value=0)
                 mask=np.vstack((np.zeros((2,mask.shape[1]), dtype=mask.dtype),mask))
                 mask=np.vstack((mask, np.zeros((3,mask.shape[1]), dtype=mask.dtype)))
+                print(mask.shape)
             mask_dataset.append(mask)
+            # print('mask_dataset ',mask_dataset.shape)
+            # mask_dataset[i]=mask
             img_dataset.append(img)
+            # print(img.shape)
+        else:
+            print(name)
+        i=i+1
     return img_dataset, mask_dataset
 
 #If you want to create your own dataset uncomment and run this file
@@ -98,12 +109,17 @@ if __name__ == '__main__':
     x_train = []
     dirs_img = os.listdir('/home/kuro/Downloads/3225_defect-free_20210218/data_annotated')
     path_img = '/home/kuro/Downloads/3225_defect-free_20210218/data_annotated/'
+    # path_mask = '/home/kuro/Downloads/3225_defect-free_20210218/data_dataset_voc/SegmentationClassPNG/'
     path_mask = '/home/kuro/Downloads/3225_defect-free_20210218/data_dataset_voc/SegmentationClass/'
     (images, masks) = unetPrepro(dirs_img,path_img,path_mask)
+    test =  np.vstack(masks)
+    mask_dataset = test.reshape((15,848,1056,1))
+    images =  np.true_divide(images, 255.0)
 
     # dataset = np.array(x_train)
     a =  np.array(images)
-    b =  np.array(masks)
-    np.save('/home/kuro/project/Image-Alignment/input/images.npy', a)
-    np.save('/home/kuro/project/Image-Alignment/input/masks.npy', b)
+    # cv2.imshow('img', images[14])
+    # cv2.imshow('mask', masks[14])
+    np.save('/home/kuro/project/Image-Alignment/input/imagesDirty3.npy', a)
+    np.save('/home/kuro/project/Image-Alignment/input/masksDirty3.npy', mask_dataset)
     # dataset = np.load('/home/kuro/project/Image-Alignment/input/dataset.npy',allow_pickle=True)

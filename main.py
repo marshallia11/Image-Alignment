@@ -14,31 +14,31 @@ if __name__ == '__main__':
 
     #########Preproces the image you can choose either only grayscale usng input_cv #########
     #########or use complex preprocessing such as contour using preprocessing method#########
-    grayscale_dataset = util.preprocessing(dataset[0:50])
+    grayscale_dataset = util.preprocessing(dataset[0:4])
     # grayscale_dataset = util.input_cv(dataset)
 
     #########Select the feature detection you want to use#########
+    (kp, desc) = fd.orb(grayscale_dataset)
     # (kp, desc) = fd.orb(grayscale_dataset)
-    # (kp, desc) = fd.orb(grayscale_dataset)
-    # kp = fd.fast(dataset[0],grayscale_dataset[0])
-    (kp,desc) = fd.sift(dataset[0:50],grayscale_dataset)
-    # (kp,desc) = fd.brief(dataset[0:50],grayscale_dataset)
-    # (kp,desc) = fd.akaze(dataset[0:50],grayscale_dataset)
+    # kp = fd.fast(dataset[0:100],grayscale_dataset)
+    # (kp,desc) = fd.sift(dataset[0:100],grayscale_dataset)
+    # (kp,desc) = fd.brief(dataset[0:100],grayscale_dataset)
+    # (kp,desc) = fd.akaze(dataset[0:100],grayscale_dataset)
     kp = [cv2.KeyPoint_convert(x) for x in kp]
     kp = [helper(x) for x in kp]
     # print(kps[0].shape)
     # print(kps[0][0])
-    # kp = fd.harris_corner_detection(dataset[0:50],grayscale_dataset)
-    # kp = fd.shi_tomasi(dataset[0:50],grayscale_dataset)
+    # kp = fd.harris_corner_detection(dataset[0:100],grayscale_dataset)
+    # kp = fd.shi_tomasi(dataset[0:100],grayscale_dataset)
     # print(kp[0].shape)
     # print(type(kp[0][0]))
 
     #########Select the feature matching you want to use#########
-    results = fm.lucasKanade(dataset[0:50],grayscale_dataset, kp)
-    # results = fm.brute_force(dataset[0:50],grayscale_dataset, kp, desc)
-    # results = fm.knn(dataset[0:50],grayscale_dataset, kp, desc)
+    results = fm.lucasKanade(dataset[0:4],grayscale_dataset, kp)
+    # results = fm.brute_force(dataset[0:4],grayscale_dataset, kp, desc)
+    # results = fm.knn(dataset[0:4],grayscale_dataset, kp, desc)
     #
     #########Select the matrics you want to use#########
-    fm.calculateRMSE(dataset[0:50],grayscale_dataset, results)
+    fm.calculateRMSE(dataset[0:4],grayscale_dataset, results)
     # fm.calculateDiff(dataset[0:4],grayscale_dataset[0:4], results[0:4])
 
