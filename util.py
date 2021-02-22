@@ -6,7 +6,7 @@ from skimage.color import rgb2gray
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
-
+# TODO: clean the code so it is re-usable
 def input_cv(dataset):
     images =[]
     for img in dataset:

@@ -208,6 +208,11 @@ def get_unet(input_img, start_neurons=64, dropout=0.1, batchnorm=True):
     model = Model(inputs, output_layer)
     return model
 
+def create_mask(pred_mask):
+  pred_mask = tf.argmax(pred_mask, axis=-1)
+  pred_mask = pred_mask[..., tf.newaxis]
+  return pred_mask[0]
+
 if __name__ == '__main__':
     keras.backend.clear_session()
     x = np.load('/home/kuro/project/Image-Alignment/input/imagesClean3.npy',allow_pickle=True)
@@ -236,6 +241,8 @@ if __name__ == '__main__':
     earlyStopping=tf.keras.callbacks.EarlyStopping(monitor='val_accuracy',patience=5)
     plt.imshow(y_train[0])
     plt.show()
+    # TODO: modify seperate train and predict.
+    #  save the model as checkpoint. Thus we only need load model and predict
     history =model.fit(x= x_train,y= y_train, epochs=20, validation_data=(x_val, y_val), batch_size=1, callbacks=[earlyStopping])
     val_predics=model.predict(x_test)
     df = pd.DataFrame({'accuracy': history.history['accuracy'],
@@ -265,7 +272,9 @@ if __name__ == '__main__':
     # axarr[1, 1].imshow(x_test[1]*255)
     # axarr[1, 2].imshow(cv2.cvtColor(cv2.COLOR_RGBA2RGB,val_predics[1]))
     # axarr[1, 3].imshow(val_predics[1]*255)
-    # plt.show()
+
+    plt.imshow(create_mask(val_predics[0]))
+    plt.show()
     util.output('/home/kuro/project/Image-Alignment/output/c3mask.png',y_test[0])
     util.output('/home/kuro/project/Image-Alignment/output/c3mask1.png',y_test[1])
     util.output('/home/kuro/project/Image-Alignment/output/c3predicted.png',val_predics[0]*64)
