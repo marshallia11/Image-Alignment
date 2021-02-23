@@ -142,7 +142,6 @@ def calculateRMSE(original, dataset, result):
     while i < len(result):
         n= len(dataset[i])
 
-        img_before = cv2.merge((dataset[i],dataset[i],dataset[i]))
         img_before[img_before[:, :, 0] > 0, 0]=255
         img_before[img_before[:, :, 0] > 0, 1]=0
         img_before[img_before[:, :, 0]> 0, 2]=0
@@ -151,7 +150,7 @@ def calculateRMSE(original, dataset, result):
         img_after[img_after[:, :, 0] > 0, 0]=255
         img_after[img_after[:, :, 0] > 0, 1]=0
         img_after[img_after[:, :, 0]> 0, 2]=0
-
+        cv2.COLOR
         blendBefore = cv2.addWeighted(template, 0.5, img_before,1, 0.0)
         blendAfter = cv2.addWeighted(template, 0.5, img_after, 1, 0.0)
         scoreBefore = np.square(np.subtract(dataset[0],dataset[i])/n).mean()

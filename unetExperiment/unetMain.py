@@ -7,7 +7,10 @@ from tensorflow.python.keras.layers import concatenate
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dropout, Conv2DTranspose
 from tensorflow import keras
+import cv2
 import matplotlib.pyplot as plt
+
+from PIL import Image
 
 def get_unet(input_img, num_class, start_neurons=64, dropout=0.1 ):
     inputs = keras.Input(shape=input_img)
@@ -68,6 +71,7 @@ def get_unet(input_img, num_class, start_neurons=64, dropout=0.1 ):
 
 def train(x_train, y_train, x_val, y_val, image_shape, classes, epoch, batchSize, modelName):
     model = get_unet(image_shape, num_class=classes)
+    print(model.summary())
     model.compile(optimizer=Adam(learning_rate=.0001), loss="sparse_categorical_crossentropy", metrics=['accuracy'], )
 
     earlyStopping = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', patience=5)
@@ -80,8 +84,19 @@ def train(x_train, y_train, x_val, y_val, image_shape, classes, epoch, batchSize
                        'val_accuracy': history.history['val_accuracy'],
                        'loss': history.history['loss'],
                        'val_loss': history.history['val_loss']})
-    df.to_csv(pathOutput+'unetc3.csv', index=False)
-
+    df.to_csv(pathOutput+'unetd3.csv', index=False)
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['accuracy', 'val_accuracy'], loc='upper left')
+    plt.show()
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.ylabel('Loss')
+    plt.xlabel('epoch')
+    plt.legend(['loss', 'val_loss'], loc='upper left')
+    plt.show()
 
 def predict(path_model, x_test, y_test):
     model = keras.models.load_model(path_model+'.h5')
@@ -96,12 +111,39 @@ def predict(path_model, x_test, y_test):
     util.output(pathOutput + 'c3ori1.png', x_test[1] * 255)
     return val_predicts
 
-def labelVisualize(num_class,color_dict,img):
-    img = img[:,:,0] if len(img.shape) == 3 else img
-    img_out = np.zeros(img.shape + (3,))
-    for i in range(num_class):
-        img_out[img == i,:] = color_dict[i]
-    return img_out / 255
+def labelVisualize(predicted, masks):
+    result = []
+    f, axarr = plt.subplots(2, 2)
+    for counter,img in enumerate(predicted):
+        imgOut = np.argmax(img, axis=-1)
+        axarr[counter, 0].set_title('Ground Truth '+str(counter))
+        axarr[counter, 0].imshow(y_test[counter])
+        axarr[counter, 0].set_axis_off()
+        axarr[counter, 1].set_title('Predicted Mask '+str(counter))
+        axarr[counter, 1].imshow(imgOut)
+        axarr[counter, 1].set_axis_off()
+        result.append(imgOut)
+    plt.show()
+
+    return result
+
+def overlay(img, mask):
+
+    img_before = cv2.merge((mask, mask, mask))
+    img_before[img_before[:, :, 0] ==1, 0] = 0
+    img_before[img_before[:, :, 1] ==1, 1] = 0
+    img_before[img_before[:, :, 2] ==1, 2] = 255
+    img_before[img_before[:, :, 0] ==2, 0] = 0
+    img_before[img_before[:, :, 1] ==2, 1] = 255
+    img_before[img_before[:, :, 2] ==2, 2] = 0
+    img_before[img_before[:, :, 0] ==3, 0] = 0
+    img_before[img_before[:, :, 1] ==3, 1] = 255
+    img_before[img_before[:, :, 2] ==3, 2] = 255
+
+    blendBefore = cv2.addWeighted(img_before.astype('float64'),  0.2, img, 0.6,0)
+
+    return blendBefore
+
 
 if __name__ == '__main__':
     keras.backend.clear_session()
@@ -111,31 +153,33 @@ if __name__ == '__main__':
 
     imageShape = [848, 1056, 3]
     numClasses = 4
-    epoch = 20
+    epoch = 50
     batchSize = 1
 
-    x = np.load('/home/kuro/project/Image-Alignment/input/imagesClean3.npy', allow_pickle=True)
-    y = np.load('/home/kuro/project/Image-Alignment/input/masksClean3.npy', allow_pickle=True)
-    # x_train = x[:10]
-    # y_train = y[:10]
-    # x_val = x[10:13]
-    # y_val = y[10:13]
-    # x_test = x[13:]
-    # y_test = y[13:]
+    x = np.load('/home/kuro/project/Image-Alignment/input/imagesDirty3.npy', allow_pickle=True)
+    y = np.load('/home/kuro/project/Image-Alignment/input/masksDirty3.npy', allow_pickle=True)
+    x_train = x[:10]
+    y_train = y[:10]
+    x_val = x[10:13]
+    y_val = y[10:13]
+    x_test = x[13:]
+    y_test = y[13:]
 
-    x_train = x[:7]
-    y_train = y[:7]
-    x_val = x[7:10]
-    y_val = y[7:10]
-    x_test = x[10:]
-    y_test = y[10:]
+    # x_train = x[:7]
+    # y_train = y[:7]
+    # x_val = x[7:10]
+    # y_val = y[7:10]
+    # x_test = x[10:]
+    # y_test = y[10:]
+    back_img= np.zeros((848, 1056))
+    mask = np.divide(y_test[0], 3)
+    img_before = overlay(x_test[0]*255, y_test[0])
 
-    # train(x_train, y_train, x_val, y_val, imageShape, numClasses, epoch, batchSize, 'unetd3')
+    train(x_train, y_train, x_val, y_val, imageShape, numClasses, epoch, batchSize, 'unetd3')
     val_predicts = predict(pathModel + 'unetd3', x_test, y_test)
-    result = []
-    for img in val_predicts:
-        imgOut = np.argmax(img, axis= -1)
-        # print(img[1,1,:],img[1,1,1],img[1,1,2],img[1,1,3])
-        # imgOut = img[:,:,1]+img[:,:,2]+img[:,:,3]
-        result.append(imgOut)
-
+    predicted_mask = labelVisualize(val_predicts, y_test)
+    for counter, value in enumerate(predicted_mask):
+        before = overlay(x_test[counter] * 255, y_test[counter])
+        after = overlay(x_test[counter] * 255, value)
+        util.output('/home/kuro/project/Image-Alignment/output/overlayBefore'+str(counter)+'.png', before)
+        util.output('/home/kuro/project/Image-Alignment/output/overlayAfter'+str(counter)+'.png', after)
