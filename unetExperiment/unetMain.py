@@ -7,6 +7,7 @@ from tensorflow.python.keras.layers import concatenate
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dropout, Conv2DTranspose
 from tensorflow import keras
+import matplotlib.pyplot as plt
 
 def get_unet(input_img, num_class, start_neurons=64, dropout=0.1 ):
     inputs = keras.Input(shape=input_img)
@@ -84,20 +85,26 @@ def train(x_train, y_train, x_val, y_val, image_shape, classes, epoch, batchSize
 
 def predict(path_model, x_test, y_test):
     model = keras.models.load_model(path_model+'.h5')
-    val_predics = model.predict(x_test)
+    val_predicts = model.predict(x_test)
     util.output(pathOutput + 'c3mask.png', y_test[0])
     util.output(pathOutput + 'c3mask1.png', y_test[1])
-    util.output(pathOutput + 'c3predicted.png', val_predics[0] * 64)
-    util.output(pathOutput + 'c3predicted1.png', val_predics[1] * 64)
-    util.output(pathOutput + 'c3predicted3.png', val_predics[0])
-    util.output(pathOutput + 'c3predicted4.png', val_predics[1])
+    util.output(pathOutput + 'c3predicted.png', val_predicts[0] * 64)
+    util.output(pathOutput + 'c3predicted1.png', val_predicts[1] * 64)
+    util.output(pathOutput + 'c3predicted3.png', val_predicts[0])
+    util.output(pathOutput + 'c3predicted4.png', val_predicts[1])
     util.output(pathOutput + 'c3ori.png', x_test[0] * 255)
     util.output(pathOutput + 'c3ori1.png', x_test[1] * 255)
+    return val_predicts
 
+def labelVisualize(num_class,color_dict,img):
+    img = img[:,:,0] if len(img.shape) == 3 else img
+    img_out = np.zeros(img.shape + (3,))
+    for i in range(num_class):
+        img_out[img == i,:] = color_dict[i]
+    return img_out / 255
 
 if __name__ == '__main__':
     keras.backend.clear_session()
-
     pathInput = '/home/kuro/project/Image-Alignment/input/'
     pathOutput = '/home/kuro/project/Image-Alignment/output/'
     pathModel = '/home/kuro/project/Image-Alignment/model/'
@@ -124,4 +131,11 @@ if __name__ == '__main__':
     y_test = y[10:]
 
     # train(x_train, y_train, x_val, y_val, imageShape, numClasses, epoch, batchSize, 'unetd3')
-    predict(pathModel + 'unetd3', x_test, y_test)
+    val_predicts = predict(pathModel + 'unetd3', x_test, y_test)
+    result = []
+    for img in val_predicts:
+        imgOut = np.argmax(img, axis= -1)
+        # print(img[1,1,:],img[1,1,1],img[1,1,2],img[1,1,3])
+        # imgOut = img[:,:,1]+img[:,:,2]+img[:,:,3]
+        result.append(imgOut)
+
