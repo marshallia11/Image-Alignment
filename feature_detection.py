@@ -42,7 +42,7 @@ def fast(img, img_gray):
     fast.setNonmaxSuppression(True)
     kp = fast.detect(img_gray, None)
     kp_img = cv2.drawKeypoints(img, kp, None, color=(255, 0, 0))
-    # util.output('/home/kuro/project/Image-Alignment/output/fast/1_2.png', kp_img)
+    # util.output('  /Users/niyanqin/PycharmProjects/LearningDL/dataset/output/fast/1_2.png', kp_img)
     return kp
 
 def sift(original, dataset):
@@ -54,7 +54,7 @@ def sift(original, dataset):
         kps.append(kp)
         desc.append(des)
         # result = cv2.drawKeypoints(value, kp, None, color=(255, 0, 0))
-        # util.output('/home/kuro/project/Image-Alignment/output/sift/1_2.png', result)
+        # util.output('  /Users/niyanqin/PycharmProjects/LearningDL/dataset/output/sift/1_2.png', result)
     return kps, desc
 
 def brief(original, dataset):
@@ -81,7 +81,7 @@ def orb(dataset):
         kps.append(kp)
         desc.append(des)
         # kp_img = cv2.drawKeypoints(img, kp, None, color=(255, 0, 0))
-        # util.output('/home/kuro/project/Image-Alignment/output/orb/'+str(i)+'.png', kp_img)
+        # util.output('  /Users/niyanqin/PycharmProjects/LearningDL/dataset/output/orb/'+str(i)+'.png', kp_img)
         i=i+1
     return kps,desc
 
@@ -100,6 +100,6 @@ def akaze(img, img_gray):
     # plt.imshow(kp_img)
     # plt.show()
 
-    # util.output('/home/kuro/project/Image-Alignment/output/orb/1_2.png', kp_img)
+    # util.output('  /Users/niyanqin/PycharmProjects/LearningDL/dataset/output/orb/1_2.png', kp_img)
 
     return kps, desc

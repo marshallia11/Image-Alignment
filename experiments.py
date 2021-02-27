@@ -5,7 +5,7 @@ import feature_detection as fd
 
 if __name__ == '__main__':
     np.set_printoptions(suppress=True)
-    dataset = np.load('/home/kuro/project/Image-Alignment/input/dataset.npy',allow_pickle=True)
+    dataset = np.load('/Users/niyanqin/PycharmProjects/LearningDL/dataset/semantic.npy',allow_pickle=True)
     img1 = dataset[0]
     img2 = dataset[8]
     # dataset = [dataset[1]]
@@ -13,7 +13,6 @@ if __name__ == '__main__':
     cnr1= fd.shi_tomasi(img1, dataset[0])
     cnr2= fd.shi_tomasi(img2, dataset[8])
     x= 0
-
     if(len(cnr1)< len(cnr2)):
         cnr2 =cnr2[:len(cnr1)]
     if (len(cnr2) < len(cnr1)):

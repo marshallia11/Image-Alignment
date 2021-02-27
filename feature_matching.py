@@ -34,8 +34,8 @@ def brute_force(original, dataset, kp, desc):
 
         M = cv2.estimateAffinePartial2D(ptsA, ptsB, method=cv2.RANSAC, maxIters=1000,confidence=0.95)
         image = cv2.warpAffine(src=img_wrap,M=M[0],dsize=(img_wrap.shape[1], img_wrap.shape[0]))
-        # util.output('/home/kuro/project/Image-Alignment/output/feature_matching/brute_after'+str(i)+'.png', aligned)
-        # util.output('/home/kuro/project/Image-Alignment/output/feature_matching/brute_before'+str(i)+'.png', image)
+        # util.output('  /Users/niyanqin/PycharmProjects/LearningDL/dataset/output/feature_matching/brute_after'+str(i)+'.png', aligned)
+        # util.output('  /Users/niyanqin/PycharmProjects/LearningDL/dataset/output/feature_matching/brute_before'+str(i)+'.png', image)
         i=i+1
         results.append(image)
     return results
@@ -79,8 +79,8 @@ def knn(original,dataset, kp, desc):
         # plt.show()
 
         #save the image
-        # util.output('/home/kuro/project/Image-Alignment/output/feature_matching/knn_after'+str(i)+'.png', warped_image)
-        # util.output('/home/kuro/project/Image-Alignment/output/feature_matching/knn_before_'+str(i)+'.png', image)
+        # util.output('  /Users/niyanqin/PycharmProjects/LearningDL/dataset/output/feature_matching/knn_after'+str(i)+'.png', warped_image)
+        # util.output('  /Users/niyanqin/PycharmProjects/LearningDL/dataset/output/feature_matching/knn_before_'+str(i)+'.png', image)
         i=i+1
         results.append(image)
     return results
@@ -111,8 +111,8 @@ def lucasKanade(dataset,grayscale, kp):
         results.append(result)
 
         #Visualize the movement in template and current image
-        # helper = cv2.hconcat([img,img])
-        # helper = cv2.merge((helper,helper,helper))
+        helper = cv2.hconcat([img,img])
+        helper = cv2.merge((helper,helper,helper))
         # for x, (new, old) in enumerate(zip(curr_pts, prev_pts)):
         #     a, b = new.ravel()
         #     print(a,b)
@@ -122,9 +122,9 @@ def lucasKanade(dataset,grayscale, kp):
         #     cv2.circle(helper, (int(1055+a), b), 3, 255, -2)
         #     cv2.line(helper,(int(1055+a), b),(c,d),(255,0,0),2)
 
-        # util.output('/home/kuro/project/Image-Alignment/output/feature_matching/lucas_matching_'+str(i)+'.png', helper)
-        # util.output('/home/kuro/project/Image-Alignment/output/feature_matching/affine_after'+str(i)+'.png', image)
-        # util.output('/home/kuro/project/Image-Alignment/output/affine/affine_before'+str(i)+'_1.png', image)
+        util.output('/Users/niyanqin/PycharmProjects/LearningDL/dataset/output/feature_matching/feature_matching'+str(i)+'.png', helper)
+        util.output('/Users/niyanqin/PycharmProjects/LearningDL/dataset/output/feature_matching/affine_after'+str(i)+'.png', image)
+        util.output('/Users/niyanqin/PycharmProjects/LearningDL/dataset/output/affine/affine_before'+str(i)+'_1.png', image)
         i=i+1
     return results
 
@@ -155,17 +155,22 @@ def calculateRMSE(original, dataset, result):
         after.append(math.sqrt(scoreAfter))
         before.append(math.sqrt(scoreBefore))
 
-        # cv2.imwrite('/home/kuro/project/Image-Alignment/output/affine_before_'+str(i)+'.png',blendBefore)
-        # cv2.imwrite('/home/kuro/project/Image-Alignment/output/affine_after_'+str(i)+'.png',blendAfter)
+        cv2.imwrite('/Users/niyanqin/PycharmProjects/LearningDL/dataset/output/calculateRMSE/affine_before_'+str(i)+'.png',blendBefore)
+        cv2.imwrite('/Users/niyanqin/PycharmProjects/LearningDL/dataset/output/calculateRMSE/affine_after_'+str(i)+'.png',blendAfter)
 
         i=i+1
 
-    df = pd.DataFrame({'dataset': np.arange(0, 50, 1),
+    print("before")
+    print(before)
+    print(len(before))
+    print("after")
+    print(after)
+    print(len(after))
+    df = pd.DataFrame({'dataset': np.arange(0, 15, 1),
                        'before': before,
                        'after': after})
-    cv2.waitKey(0)
 
-    df.to_csv('/home/kuro/project/Image-Alignment/output/result_sift.csv', index=False)
+    df.to_csv('/Users/niyanqin/PycharmProjects/LearningDL/dataset/output/result_sift.csv', index=False)
 
 #Absolute Different metrics
 def calculateDiff(original, dataset, result):
@@ -185,4 +190,4 @@ def calculateDiff(original, dataset, result):
                        'before': before,
                        'after': after})
     print(df)
-    df.to_csv('/home/kuro/project/Image-Alignment/output/diff_brute.csv', index=False)
+    df.to_csv('/Users/niyanqin/PycharmProjects/LearningDL/dataset/output/diff_brute.csv', index=False)

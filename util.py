@@ -3,6 +3,10 @@ import numpy as np
 import os
 import copy
 from skimage.color import rgb2gray
+from skimage import img_as_ubyte
+
+
+import matplotlib.pyplot as plt
 
 x_train = []
 
@@ -42,8 +46,17 @@ def preprocessing(dataset):
     images=[]
     i=0
     for img in dataset:
+
+        img = img.astype(np.float32)
+
         img_gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+
+        plt.imshow(img_gray)
+        plt.show()
         blured = cv2.GaussianBlur(img_gray, (3, 3), 0)
+
+        blured = blured.astype("uint8")
+
         (threshi, img_bw) = cv2.threshold(blured, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
         thresh1 = copy.deepcopy(img_bw)
